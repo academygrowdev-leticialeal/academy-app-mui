@@ -1,19 +1,17 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { v4 as randomUUID } from 'uuid';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../typed-hooks";
+import type { User } from "../../interfaces/user";
+import { cadastrarAluno } from "../../services/academy-api/usuarios/cadastrar";
 
-export interface User {
-    id: string;            
-    nome: string;         
-    email: string;      
-    idade?: number;       
-    senha: string;      
-    authToken?: string;     
-    criadoEm: string;     
-    atualizadoEm: string;
-}
+type UserRegister = Omit<User, 'id' | 'criadoEm' | 'atualizado_em'>
 
-type UserRegister = Omit<User, 'id' | 'criadoEm' | 'atualizadoEm'>
+// ASSINCRONO - Cadastrar um usuário
+export const register = createAsyncThunk('users/register', async (novoUsuario: UserRegister) => {
+    const resultado = await cadastrarAluno(novoUsuario);
+
+    return resultado
+});
+
 
 const initialState: User[] = [];
 
@@ -21,20 +19,35 @@ const usersSlice = createSlice({
     name: 'users',
     initialState,
     reducers: {
-        register: (currentState, action: PayloadAction<UserRegister>) => {
-            const newUser: User = {
-                id: randomUUID(),
-                criadoEm: new Date().toDateString(),
-                atualizadoEm: new Date().toDateString(),
-                ...action.payload
-            }
+        // É utilizado apenas quando temos ações síncronas
+        // register: (currentState, action: PayloadAction<UserRegister>) => {
+        //     const newUser: User = {
+        //         id: randomUUID(),
+        //         criadoEm: new Date().toDateString(),
+        //         atualizadoEm: new Date().toDateString(),
+        //         ...action.payload
+        //     }
 
-            currentState.push(newUser)
-        }
+        //     currentState.push(newUser)
+        // }
+    },
+    extraReducers: (builder) => {
+        // É utilizado apenas quando temos ações assíncronas
+        builder.addCase(register.fulfilled, (currentState, action) => {
+            //...
+            alert(action.payload.mensagem);
+
+            if (action.payload.dados && action.payload.sucesso) {
+                currentState.push(action.payload.dados)
+            }
+            
+            //...
+        })
+
     }
 });
 
-export const { register } = usersSlice.actions;
+
 
 export const usersReducer = usersSlice.reducer;
 

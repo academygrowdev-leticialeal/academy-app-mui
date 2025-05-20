@@ -1,47 +1,65 @@
-import { Button, Checkbox, FormControlLabel, Stack, TextField } from "@mui/material";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { selectUsers } from "../store/modules/usersSlice";
+import {
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Stack,
+  TextField,
+} from "@mui/material";
+import { useAppDispatch } from "../store/hooks";
 import { login } from "../store/modules/userLoggedSlice";
-import { useNavigate } from "react-router";
 
 export function FormSignIn() {
-    const users = useAppSelector(selectUsers);
-    const dispatch = useAppDispatch();
-    const navigate = useNavigate();
-    
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+  const dispatch = useAppDispatch();
 
-        const email = event.currentTarget.email.value;
-        const password = event.currentTarget.password.value;
-        // const remember = event.currentTarget.remember.checked;
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-        const dataUser = {
-            email,
-            password
-        }
+    const email = event.currentTarget.email.value;
+    const password = event.currentTarget.password.value;
+    // const remember = event.currentTarget.remember.checked;
 
-        const userFound = users.find((user) => user.email === dataUser.email && user.senha === dataUser.password)
+    dispatch(
+      login({
+        email,
+        senha: password,
+      })
+    );
+    event.currentTarget.reset();
+  }
 
-        if (!userFound) {
-            alert("Invalid credentials!")
-            return
-        }
+  return (
+    <Stack
+      component="form"
+      spacing={3}
+      width={"100%"}
+      marginY={2}
+      onSubmit={handleSubmit}
+    >
+      <TextField
+        type="email"
+        name="email"
+        label="E-mail Address"
+        variant="outlined"
+        fullWidth
+        required
+      />
+      <TextField
+        type="password"
+        name="password"
+        label="Password"
+        variant="outlined"
+        fullWidth
+        required
+      />
+      <FormControlLabel
+        name="remember"
+        control={<Checkbox />}
+        label="Remember me"
+      />
 
-        dispatch(login(userFound))
-        alert("User logged!")
-        event.currentTarget.reset();
-        navigate("/projects")
-    }
-
-
-    return (
-        <Stack component="form"  spacing={3} width={"100%"} marginY={2} onSubmit={handleSubmit}>
-            <TextField type="email" name="email" label="E-mail Address" variant="outlined" fullWidth required/>
-            <TextField type="password" name="password" label="Password" variant="outlined" fullWidth required/>
-            <FormControlLabel name="remember" control={<Checkbox />} label="Remember me" />
-
-            <Button type="submit" variant="contained">Sign In</Button>
-        </Stack>
-    )
+      <Button type="submit" variant="contained">
+        Sign In
+      </Button>
+    </Stack>
+  );
 }
