@@ -10,6 +10,8 @@ import { useAppSelector } from "../store/hooks";
 import { selectUserLogged } from "../store/modules/userLoggedSlice";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
+import { Loading } from "../components/Loading";
+import { Notification } from "../components/Notification";
 
 export function SignIn() {
   const userLogged = useAppSelector(selectUserLogged);
@@ -40,6 +42,8 @@ export function SignIn() {
 
         <Copyright />
       </Box>
+      <Loading />
+      <Notification />
     </DefaultAuthLayout>
   );
 }

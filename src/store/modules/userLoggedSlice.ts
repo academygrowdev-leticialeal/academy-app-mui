@@ -3,9 +3,13 @@ import type { RootState } from "../typed-hooks";
 import { loginAluno } from "../../services/academy-api/usuarios/login";
 import { logoutAluno } from "../../services/academy-api/usuarios/logout";
 import type { UserLogged } from "../../interfaces/user-logged";
+import { setLoading } from "./loadingSlice";
+import { setNotification } from "./notificationSlice";
 
 
-export const login = createAsyncThunk("userLogged/login", async (dados: Omit<UserLogged, 'token'>) => {
+export const login = createAsyncThunk("userLogged/login", async (dados: Omit<UserLogged, 'token'>, thunkAPI) => {
+
+    thunkAPI.dispatch(setLoading(true));
     const resultado = await loginAluno(dados);
 
     const payload = {
@@ -16,12 +20,28 @@ export const login = createAsyncThunk("userLogged/login", async (dados: Omit<Use
         }
     }
 
+    thunkAPI.dispatch(setLoading(false));
+    thunkAPI.dispatch(setNotification({
+        isVisible: true,
+        message: resultado.mensagem,
+        severity: resultado.sucesso ? "success" : "error"
+    }))
+
     return payload
 });
 
 
-export const logout = createAsyncThunk("userLogged/logout", async(token: string) => {
+export const logout = createAsyncThunk("userLogged/logout", async(token: string, { dispatch }) => {
+
+    dispatch(setLoading(true));
     const resultado = await logoutAluno(token);
+    dispatch(setLoading(false));
+    dispatch(setNotification({
+        isVisible: true,
+        message: resultado.mensagem,
+        severity: resultado.sucesso ? "success" : "error"
+    }));
+
     return resultado
 })
 
@@ -43,8 +63,8 @@ const userLoggedSlice = createSlice({
         // }
     },
     extraReducers: (builder) => {
+
         builder.addCase(login.fulfilled, (currentState, action) => {
-            alert(action.payload.mensagem);
 
             if(action.payload.sucesso && action.payload.dados.token) {
                 currentState.email = action.payload.dados.email;
@@ -54,8 +74,6 @@ const userLoggedSlice = createSlice({
         })
 
         builder.addCase(logout.fulfilled, (_, action) => {
-            alert(action.payload.mensagem);
-           
             if(action.payload.sucesso) {
                 return initialState;
             }
